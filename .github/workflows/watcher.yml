@@ -1,0 +1,37 @@
+name: FB Reels Watcher
+
+on:
+  schedule:
+    # Mỗi 5 phút. Lưu ý: GitHub Actions có thể delay 5-15 phút khi server tải cao.
+    - cron: '*/5 * * * *'
+  workflow_dispatch:  # cho phép trigger thủ công từ Actions tab
+
+concurrency:
+  group: fb-reels-watcher
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run watcher
+        env:
+          PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+          GRAPH_VERSION: v22.0
+          WATCHER_START_ISO: '2026-05-19T14:30:00Z'
+          REELS_LIMIT: '10'
+        run: python watcher.py
